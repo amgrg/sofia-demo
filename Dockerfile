@@ -15,7 +15,7 @@ COPY static ./static
 
 # Cartella runtime per il DB SQLite (volume in compose)
 RUN mkdir -p /app/data
-VOLUME ["/app/data"]
+
 
 ENV SOFIA_HOST=0.0.0.0
 ENV PORT=8000
