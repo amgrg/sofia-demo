@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  sofia:
+    build: .
+    container_name: sofia-demo
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - SOFIA_SECRET_KEY=cambia-questa-chiave-in-produzione-sofia-demo
+      - SOFIA_ADMIN_EMAIL=admin@sofiaai.it
+      - SOFIA_ADMIN_PASSWORD=admin1234
+    restart: unless-stopped

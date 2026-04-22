@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sofia AI — Admin Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--tc:#C4582A;--cioc:#2C1A0E;--crema:#F5EFE0;--sabbia:#E8D9C0;--verde:#6B8C6E;--ocra:#D4A853;--bg:#110b05;--surface:#1e1208;--border:#2e1e10}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--crema);min-height:100vh}
+header{background:var(--cioc);padding:1rem 2rem;display:flex;align-items:center;gap:1rem;border-bottom:1px solid var(--border)}
+.logo{font-size:1.2rem;font-weight:700;font-style:italic}.logo span{color:var(--tc)}
+.badge{background:var(--tc);font-size:.6rem;padding:2px 8px;border-radius:2px;letter-spacing:.1em;text-transform:uppercase}
+.hlinks{margin-left:auto;display:flex;gap:1rem;font-size:.8rem}
+.hlinks a{color:var(--crema);opacity:.5;text-decoration:none;transition:opacity .2s}.hlinks a:hover{opacity:1}
+main{padding:2rem;max-width:1300px;margin:0 auto}
+
+/* login */
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:90vh}
+.login-box{background:var(--surface);padding:2.5rem;border-radius:10px;border:1px solid var(--border);width:380px;max-width:92vw}
+.login-box h2{font-size:1.1rem;margin-bottom:1.5rem;font-family:Georgia,serif;opacity:.9}
+.field{margin-bottom:.9rem}
+.field label{display:block;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;opacity:.4;margin-bottom:.35rem}
+.field input{width:100%;padding:.6rem .9rem;background:var(--bg);border:1px solid var(--border);color:var(--crema);border-radius:4px;font-size:.88rem;outline:none}
+.field input:focus{border-color:var(--tc)}
+.btn-full{width:100%;padding:.75rem;background:var(--tc);color:white;border:none;border-radius:4px;cursor:pointer;font-size:.9rem;margin-top:.3rem;transition:background .2s}
+.btn-full:hover{background:#8B2215}
+.err{color:var(--tc);font-size:.78rem;margin-top:.5rem;min-height:.9rem}
+
+/* stats grid */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2.5rem}
+.stat-card{background:var(--surface);padding:1.3rem 1.5rem;border-radius:8px;border:1px solid var(--border)}
+.stat-n{font-size:2.2rem;font-weight:700;color:var(--ocra);display:block;font-family:Georgia,serif}
+.stat-l{font-size:.68rem;opacity:.4;text-transform:uppercase;letter-spacing:.12em;margin-top:.2rem;display:block}
+.stat-sub{font-size:.72rem;opacity:.25;margin-top:.3rem;display:block}
+
+/* section */
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.section-title{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;opacity:.35}
+.refresh-btn{font-size:.75rem;background:none;border:1px solid var(--border);color:var(--crema);padding:.3rem .8rem;border-radius:3px;cursor:pointer;opacity:.5;transition:opacity .2s}
+.refresh-btn:hover{opacity:1}
+
+/* table */
+.card{background:var(--surface);border-radius:8px;border:1px solid var(--border);overflow:hidden;margin-bottom:2rem}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+thead th{padding:.75rem 1rem;text-align:left;font-size:.65rem;opacity:.3;text-transform:uppercase;letter-spacing:.12em;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td{padding:.75rem 1rem;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle}
+tbody tr:last-child td{border:none}
+tbody tr:hover td{background:rgba(255,255,255,.015)}
+.piano{padding:2px 9px;border-radius:10px;font-size:.62rem;text-transform:uppercase;font-weight:600;white-space:nowrap}
+.piano.libero{background:rgba(107,140,110,.12);color:#6B8C6E;border:1px solid rgba(107,140,110,.3)}
+.piano.professionale{background:rgba(212,168,83,.12);color:var(--ocra);border:1px solid rgba(212,168,83,.3)}
+.piano.aziende{background:rgba(196,88,42,.12);color:var(--tc);border:1px solid rgba(196,88,42,.3)}
+.status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px}
+.dot-on{background:#6B8C6E}.dot-off{background:var(--tc)}
+.actions{display:flex;gap:.35rem;flex-wrap:wrap}
+.btn-xs{padding:3px 9px;border:1px solid var(--border);background:transparent;color:var(--crema);border-radius:3px;cursor:pointer;font-size:.68rem;white-space:nowrap;transition:all .15s}
+.btn-xs:hover{background:var(--border)}
+.btn-xs.danger{border-color:rgba(196,88,42,.4)}.btn-xs.danger:hover{background:var(--tc);border-color:var(--tc)}
+.btn-xs.promote{border-color:rgba(212,168,83,.4);color:var(--ocra)}.btn-xs.promote:hover{background:rgba(212,168,83,.15)}
+
+/* usage bar */
+.bar-wrap{display:flex;align-items:center;gap:.5rem}
+.bar{width:55px;height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;flex-shrink:0}
+.bar-fill{height:100%;border-radius:3px;transition:width .3s}
+.bar-fill.low{background:var(--verde)}
+.bar-fill.mid{background:var(--ocra)}
+.bar-fill.high{background:var(--tc)}
+
+/* piani chart */
+.piani-chart{display:flex;gap:1rem;margin-bottom:2rem}
+.piano-stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.5rem;flex:1;text-align:center}
+.piano-n{font-size:1.8rem;font-weight:700;display:block;font-family:Georgia,serif}
+.piano-l{font-size:.7rem;opacity:.4;text-transform:uppercase;letter-spacing:.1em;margin-top:.2rem;display:block}
+.n-libero{color:#6B8C6E}.n-pro{color:var(--ocra)}.n-az{color:var(--tc)}
+
+@media(max-width:900px){
+  .stats{grid-template-columns:1fr 1fr}
+  .piani-chart{flex-direction:column}
+  table{font-size:.75rem}
+  .hlinks a:not(:last-child){display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginView">
+  <div class="login-box">
+    <h2>🔐 Sofia AI — Admin</h2>
+    <div class="field"><label>Email</label><input id="aEmail" type="email" value="admin@sofiaai.it" autocomplete="username"/></div>
+    <div class="field"><label>Password</label><input id="aPw" type="password" value="admin1234" autocomplete="current-password"/></div>
+    <div class="err" id="aErr"></div>
+    <button class="btn-full" onclick="adminLogin()">Accedi →</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashView" style="display:none">
+  <header>
+    <div class="logo">So<span>fi</span>a</div>
+    <div class="badge">Admin Dashboard</div>
+    <div class="hlinks">
+      <a href="/demo">← Chat</a>
+      <a href="/api/docs">API Docs</a>
+      <a href="#" onclick="adminLogout()">Esci</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Stats -->
+    <div class="stats" id="statsGrid">
+      <div class="stat-card"><span class="stat-n">—</span><span class="stat-l">Utenti totali</span></div>
+      <div class="stat-card"><span class="stat-n">—</span><span class="stat-l">Attivi oggi</span></div>
+      <div class="stat-card"><span class="stat-n">—</span><span class="stat-l">Messaggi oggi</span></div>
+      <div class="stat-card"><span class="stat-n">—</span><span class="stat-l">Messaggi totali</span></div>
+    </div>
+
+    <!-- Piano breakdown -->
+    <div class="piani-chart" id="pianiChart">
+      <div class="piano-stat"><span class="piano-n n-libero">—</span><span class="piano-l">Libero</span></div>
+      <div class="piano-stat"><span class="piano-n n-pro">—</span><span class="piano-l">Professionale</span></div>
+      <div class="piano-stat"><span class="piano-n n-az">—</span><span class="piano-l">Aziende</span></div>
+    </div>
+
+    <!-- Users table -->
+    <div class="section-hdr">
+      <div class="section-title">Utenti registrati</div>
+      <button class="refresh-btn" onclick="caricaDashboard()">↻ Aggiorna</button>
+    </div>
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Nome</th>
+            <th>Piano</th>
+            <th>Stato</th>
+            <th>Uso oggi</th>
+            <th>Totale msg</th>
+            <th>Registrato</th>
+            <th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody id="usersBody">
+          <tr><td colspan="8" style="text-align:center;opacity:.3;padding:2rem">Caricamento…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script>
+const API = '';
+let adminToken = sessionStorage.getItem('sofia_admin_token') || '';
+
+if (adminToken) {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('dashView').style.display = 'block';
+  caricaDashboard();
+}
+
+async function adminLogin() {
+  const err = document.getElementById('aErr');
+  err.textContent = '';
+  try {
+    const r = await fetch('/auth/login', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        email: document.getElementById('aEmail').value,
+        password: document.getElementById('aPw').value
+      })
+    });
+    const d = await r.json();
+    if (!r.ok) { err.textContent = d.detail; return; }
+    if (d.utente?.ruolo !== 'admin') { err.textContent = 'Accesso riservato agli amministratori'; return; }
+    adminToken = d.access_token;
+    sessionStorage.setItem('sofia_admin_token', adminToken);
+    document.getElementById('loginView').style.display = 'none';
+    document.getElementById('dashView').style.display = 'block';
+    caricaDashboard();
+  } catch(e) { err.textContent = 'Errore di connessione al server'; }
+}
+
+function adminLogout() {
+  sessionStorage.removeItem('sofia_admin_token');
+  adminToken = '';
+  document.getElementById('loginView').style.display = 'flex';
+  document.getElementById('dashView').style.display = 'none';
+}
+
+function authH() {
+  return {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminToken};
+}
+
+async function caricaDashboard() {
+  await Promise.all([caricaStats(), caricaUtenti()]);
+}
+
+async function caricaStats() {
+  const r = await fetch('/admin/stats', {headers: authH()});
+  if (!r.ok) return;
+  const s = await r.json();
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card">
+      <span class="stat-n">${s.totale_utenti}</span>
+      <span class="stat-l">Utenti totali</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-n">${s.utenti_attivi_oggi}</span>
+      <span class="stat-l">Attivi oggi</span>
+      <span class="stat-sub">${s.totale_utenti > 0 ? Math.round(s.utenti_attivi_oggi/s.totale_utenti*100) : 0}% del totale</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-n">${s.messaggi_oggi}</span>
+      <span class="stat-l">Messaggi oggi</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-n">${s.totale_messaggi.toLocaleString('it-IT')}</span>
+      <span class="stat-l">Messaggi totali</span>
+    </div>
+  `;
+
+  const p = s.per_piano || {};
+  document.getElementById('pianiChart').innerHTML = `
+    <div class="piano-stat"><span class="piano-n n-libero">${p.libero ?? 0}</span><span class="piano-l">Piano Libero</span></div>
+    <div class="piano-stat"><span class="piano-n n-pro">${p.professionale ?? 0}</span><span class="piano-l">Professionale</span></div>
+    <div class="piano-stat"><span class="piano-n n-az">${p.aziende ?? 0}</span><span class="piano-l">Aziende</span></div>
+  `;
+}
+
+async function caricaUtenti() {
+  const r = await fetch('/admin/utenti', {headers: authH()});
+  if (!r.ok) return;
+  const d = await r.json();
+  const tbody = document.getElementById('usersBody');
+
+  if (!d.utenti.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;opacity:.3;padding:2rem">Nessun utente registrato</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = d.utenti.map(u => {
+    const pct = Math.min(100, (u.messaggi_oggi / u.limite_giornaliero) * 100);
+    const barClass = pct < 50 ? 'low' : pct < 85 ? 'mid' : 'high';
+    const data = new Date(u.creato_il).toLocaleDateString('it-IT', {day:'2-digit',month:'short',year:'numeric'});
+    const actBtns = [
+      u.piano !== 'professionale' ? `<button class="btn-xs promote" onclick="cambiaPiano('${u.email}','professionale')">→ Pro</button>` : '',
+      u.piano !== 'aziende'       ? `<button class="btn-xs promote" onclick="cambiaPiano('${u.email}','aziende')">→ Aziende</button>` : '',
+      u.piano !== 'libero'        ? `<button class="btn-xs" onclick="cambiaPiano('${u.email}','libero')">→ Libero</button>` : '',
+      `<button class="btn-xs danger" onclick="toggleUtente('${u.email}')">${u.attivo ? 'Disabilita' : 'Abilita'}</button>`
+    ].filter(Boolean).join('');
+
+    return `<tr>
+      <td style="font-family:monospace;font-size:.75rem">${u.email}</td>
+      <td>${u.nome} ${u.cognome ?? ''}</td>
+      <td><span class="piano ${u.piano}">${u.piano}</span></td>
+      <td>
+        <span class="status-dot ${u.attivo ? 'dot-on' : 'dot-off'}"></span>
+        ${u.attivo ? 'Attivo' : 'Disabilitato'}
+      </td>
+      <td>
+        <div class="bar-wrap">
+          <span style="font-size:.78rem">${u.messaggi_oggi}/${u.piano === 'libero' ? u.limite_giornaliero : '∞'}</span>
+          ${u.piano === 'libero' ? `<div class="bar"><div class="bar-fill ${barClass}" style="width:${pct}%"></div></div>` : ''}
+        </div>
+      </td>
+      <td>${u.totale_messaggi.toLocaleString('it-IT')}</td>
+      <td style="opacity:.5;font-size:.78rem">${data}</td>
+      <td><div class="actions">${actBtns}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+async function cambiaPiano(email, piano) {
+  const r = await fetch('/admin/piano', {
+    method: 'POST', headers: authH(),
+    body: JSON.stringify({email, piano})
+  });
+  if (r.ok) caricaDashboard();
+}
+
+async function toggleUtente(email) {
+  const r = await fetch('/admin/toggle/' + encodeURIComponent(email), {
+    method: 'POST', headers: authH()
+  });
+  if (r.ok) caricaDashboard();
+}
+
+// auto-refresh ogni 60s
+setInterval(() => { if (adminToken) caricaDashboard(); }, 60000);
+</script>
+</body>
+</html>

@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sofia — L'intelligenza che parla italiano</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --terracotta: #C4582A;
+    --ocra: #D4A853;
+    --verde-salvia: #6B8C6E;
+    --crema: #F5EFE0;
+    --cioccolato: #2C1A0E;
+    --sabbia: #E8D9C0;
+    --rosso-pompeiano: #8B2215;
+    --azzurro-cielo: #B8D4E3;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--crema);
+    color: var(--cioccolato);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--terracotta);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.15s ease, background 0.2s;
+    transform: translate(-50%, -50%);
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1.5px solid var(--terracotta);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    transition: transform 0.35s ease, opacity 0.2s;
+    transform: translate(-50%, -50%);
+    opacity: 0.5;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    padding: 1.4rem 3rem;
+    display: flex; align-items: center; justify-content: space-between;
+    z-index: 100;
+    background: linear-gradient(to bottom, var(--crema) 60%, transparent);
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: var(--cioccolato);
+  }
+  .nav-logo span { color: var(--terracotta); font-style: italic; }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    text-decoration: none;
+    color: var(--cioccolato);
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.65;
+    transition: opacity 0.2s;
+  }
+  .nav-links a:hover { opacity: 1; }
+  .nav-cta {
+    background: var(--terracotta);
+    color: var(--crema) !important;
+    opacity: 1 !important;
+    padding: 0.5rem 1.2rem;
+    border-radius: 2px;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-left {
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 8rem 3rem 5rem;
+    position: relative; z-index: 2;
+  }
+  .hero-eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    margin-bottom: 1.2rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.2s forwards;
+  }
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3.5rem, 6vw, 6rem);
+    font-weight: 900;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.4s forwards;
+  }
+  .hero-title em {
+    font-style: italic;
+    color: var(--terracotta);
+  }
+  .hero-sub {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    max-width: 440px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.6s forwards;
+    color: #4a3520;
+  }
+  .hero-actions {
+    display: flex; gap: 1rem; margin-top: 2.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s forwards;
+  }
+  .btn-primary {
+    background: var(--cioccolato);
+    color: var(--crema);
+    border: none; border-radius: 2px;
+    padding: 0.85rem 2rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+    cursor: none;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .btn-primary:hover { background: var(--terracotta); transform: translateY(-2px); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--cioccolato);
+    border: 1.5px solid var(--cioccolato);
+    border-radius: 2px;
+    padding: 0.85rem 2rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+    cursor: none;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--terracotta); color: var(--terracotta); }
+
+  /* Hero right — illustrazione geometrica */
+  .hero-right {
+    position: relative; overflow: hidden;
+    opacity: 0;
+    animation: fadeIn 1.2s 0.5s forwards;
+  }
+  .hero-arch {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 90%; height: 90%;
+    background: var(--sabbia);
+    border-radius: 50% 50% 0 0 / 55% 55% 0 0;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .hero-arch::before {
+    content: '';
+    position: absolute;
+    width: 60%; height: 70%;
+    border: 2px solid var(--terracotta);
+    border-radius: 50% 50% 0 0 / 55% 55% 0 0;
+    opacity: 0.3;
+  }
+
+  /* Chat mockup */
+  .chat-mockup {
+    width: 72%;
+    background: white;
+    border-radius: 12px;
+    padding: 1.2rem;
+    box-shadow: 0 20px 60px rgba(44,26,14,0.12);
+    position: relative; z-index: 2;
+    margin-bottom: 3rem;
+  }
+  .chat-header {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid var(--sabbia);
+    margin-bottom: 1rem;
+  }
+  .chat-avatar {
+    width: 28px; height: 28px;
+    background: var(--terracotta);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.75rem;
+    color: white; font-weight: 700;
+  }
+  .chat-name { font-size: 0.8rem; font-weight: 500; }
+  .chat-status { font-size: 0.65rem; color: var(--verde-salvia); margin-left: auto; }
+  .chat-bubble {
+    border-radius: 8px;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.78rem;
+    line-height: 1.55;
+    margin-bottom: 0.6rem;
+    max-width: 88%;
+  }
+  .bubble-user {
+    background: var(--sabbia);
+    margin-left: auto;
+    border-radius: 8px 8px 2px 8px;
+  }
+  .bubble-sofia {
+    background: var(--cioccolato);
+    color: var(--crema);
+    border-radius: 8px 8px 8px 2px;
+  }
+  .bubble-sofia strong { color: var(--ocra); }
+  .typing-indicator {
+    display: flex; gap: 4px; padding: 0.5rem 0.9rem;
+    background: var(--sabbia); border-radius: 8px 8px 8px 2px;
+    width: fit-content;
+  }
+  .dot {
+    width: 6px; height: 6px;
+    background: var(--terracotta);
+    border-radius: 50%;
+    animation: bounce 1.2s infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+
+  /* Decorative elements */
+  .deco-circle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.12;
+  }
+  .deco-1 {
+    width: 300px; height: 300px;
+    background: var(--terracotta);
+    top: -80px; right: -80px;
+  }
+  .deco-2 {
+    width: 180px; height: 180px;
+    background: var(--ocra);
+    bottom: 15%; left: -40px;
+  }
+  .ornament {
+    position: absolute;
+    font-size: 14rem;
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    color: var(--terracotta);
+    opacity: 0.04;
+    bottom: -2rem;
+    left: 1rem;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    background: var(--cioccolato);
+    color: var(--crema);
+    padding: 1.5rem 3rem;
+    display: flex; justify-content: space-around; align-items: center;
+    gap: 2rem;
+  }
+  .stat-item { text-align: center; }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem; font-weight: 700;
+    color: var(--ocra);
+    display: block;
+  }
+  .stat-label { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; }
+  .stat-divider { width: 1px; height: 40px; background: rgba(245,239,224,0.15); }
+
+  /* SECTION: COSA SA FARE */
+  .section { padding: 6rem 3rem; }
+  .section-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    margin-bottom: 0.8rem;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 4vw, 3.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 3.5rem;
+    max-width: 600px;
+  }
+  .section-title em { font-style: italic; color: var(--terracotta); }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--sabbia);
+    border: 1px solid var(--sabbia);
+  }
+  .feature-card {
+    background: var(--crema);
+    padding: 2.5rem 2rem;
+    transition: background 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .feature-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 0; height: 2px;
+    background: var(--terracotta);
+    transition: width 0.4s ease;
+  }
+  .feature-card:hover { background: #efe9d8; }
+  .feature-card:hover::after { width: 100%; }
+  .feature-icon {
+    font-size: 1.8rem; margin-bottom: 1rem;
+    display: block;
+  }
+  .feature-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem; font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  .feature-desc {
+    font-size: 0.85rem; line-height: 1.65;
+    color: #5a3e25; opacity: 0.8;
+  }
+
+  /* SECTION: PERCHÉ ITALIANA */
+  .section-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+  .big-quote {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.4rem, 2.5vw, 2rem);
+    font-style: italic;
+    line-height: 1.5;
+    color: var(--cioccolato);
+    border-left: 3px solid var(--terracotta);
+    padding-left: 1.8rem;
+    margin-bottom: 2rem;
+  }
+  .reason-list { list-style: none; }
+  .reason-list li {
+    display: flex; gap: 1rem; align-items: flex-start;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--sabbia);
+    font-size: 0.9rem; line-height: 1.6;
+  }
+  .reason-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem; font-weight: 700;
+    color: var(--terracotta);
+    opacity: 0.5;
+    min-width: 2rem;
+  }
+  .reason-text strong {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+    font-size: 0.95rem;
+  }
+
+  /* SECTION: PIANI */
+  .plans-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
+  .plan-card {
+    border: 1.5px solid var(--sabbia);
+    padding: 2rem;
+    border-radius: 2px;
+    position: relative;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .plan-card:hover { border-color: var(--terracotta); transform: translateY(-4px); }
+  .plan-card.featured {
+    background: var(--cioccolato);
+    color: var(--crema);
+    border-color: var(--cioccolato);
+  }
+  .plan-badge {
+    position: absolute; top: -12px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--terracotta);
+    color: white;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 12px;
+    border-radius: 2px;
+  }
+  .plan-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+  .plan-price {
+    font-size: 2.5rem;
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    color: var(--terracotta);
+    margin: 1rem 0 0.2rem;
+  }
+  .plan-card.featured .plan-price { color: var(--ocra); }
+  .plan-period { font-size: 0.75rem; opacity: 0.55; margin-bottom: 1.5rem; }
+  .plan-features { list-style: none; }
+  .plan-features li {
+    font-size: 0.82rem;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    display: flex; gap: 0.5rem;
+  }
+  .plan-card.featured .plan-features li { border-color: rgba(245,239,224,0.1); }
+  .plan-features li::before { content: '→'; color: var(--terracotta); font-size: 0.75rem; flex-shrink: 0; margin-top: 1px; }
+  .plan-card.featured .plan-features li::before { color: var(--ocra); }
+  .plan-btn {
+    margin-top: 1.5rem;
+    width: 100%;
+    padding: 0.75rem;
+    border: 1.5px solid var(--cioccolato);
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: none;
+    transition: all 0.2s;
+    border-radius: 2px;
+  }
+  .plan-btn:hover { background: var(--cioccolato); color: var(--crema); }
+  .plan-card.featured .plan-btn {
+    border-color: var(--ocra);
+    color: var(--crema);
+    background: var(--terracotta);
+  }
+  .plan-card.featured .plan-btn:hover { background: var(--rosso-pompeiano); }
+
+  /* FOOTER */
+  footer {
+    background: var(--cioccolato);
+    color: var(--crema);
+    padding: 4rem 3rem 2rem;
+  }
+  .footer-top {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 3rem;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid rgba(245,239,224,0.1);
+    margin-bottom: 2rem;
+  }
+  .footer-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem; font-weight: 900;
+    margin-bottom: 0.8rem;
+  }
+  .footer-brand span { color: var(--terracotta); font-style: italic; }
+  .footer-tagline { font-size: 0.82rem; opacity: 0.5; line-height: 1.6; }
+  .footer-col-title {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0.4;
+    margin-bottom: 1rem;
+  }
+  .footer-links { list-style: none; }
+  .footer-links li { margin-bottom: 0.6rem; }
+  .footer-links a {
+    color: var(--crema);
+    text-decoration: none;
+    font-size: 0.85rem;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+  .footer-links a:hover { opacity: 1; }
+  .footer-bottom {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.72rem; opacity: 0.35;
+  }
+  .flag { font-size: 1rem; }
+
+  /* Horizontal rule decorativo */
+  .section-rule {
+    width: 60px; height: 2px;
+    background: var(--terracotta);
+    margin-bottom: 1.5rem;
+  }
+
+  /* Background alternato */
+  .bg-sabbia { background: var(--sabbia); }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-5px); }
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero-right { display: none; }
+    .features-grid { grid-template-columns: 1fr; }
+    .plans-grid { grid-template-columns: 1fr; }
+    .section-split { grid-template-columns: 1fr; }
+    .footer-top { grid-template-columns: 1fr 1fr; }
+    nav { padding: 1rem 1.5rem; }
+    .section { padding: 4rem 1.5rem; }
+    .stats-bar { flex-wrap: wrap; gap: 1.5rem; padding: 2rem 1.5rem; }
+    .stat-divider { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">So<span>fi</span>a</div>
+  <ul class="nav-links">
+    <li><a href="#funzionalita">Funzionalità</a></li>
+    <li><a href="#perche">Perché Sofia</a></li>
+    <li><a href="#piani">Piani</a></li>
+    <li><a href="#piani" class="nav-cta">Provala gratis</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="ornament">S</div>
+    <p class="hero-eyebrow">Intelligenza Artificiale Italiana · 2025</p>
+    <h1 class="hero-title">
+      Pensa.<br>
+      Scrive.<br>
+      Capisce<br>
+      <em>l'Italia.</em>
+    </h1>
+    <p class="hero-sub">
+      Sofia è l'assistente AI pensata per chi vive, lavora e crea in italiano. Conosce il diritto fiscale italiano, le sfumature regionali, la cultura, il linguaggio burocratico — e lo odia quanto te.
+    </p>
+    <div class="hero-actions">
+      <button class="btn-primary">Inizia gratis →</button>
+      <button class="btn-secondary">Guarda il demo</button>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="deco-circle deco-1"></div>
+    <div class="deco-circle deco-2"></div>
+    <div class="hero-arch">
+      <div class="chat-mockup">
+        <div class="chat-header">
+          <div class="chat-avatar">S</div>
+          <div>
+            <div class="chat-name">Sofia</div>
+          </div>
+          <div class="chat-status">● Online</div>
+        </div>
+        <div class="chat-bubble bubble-user">
+          Ho ricevuto un avviso di accertamento dall'Agenzia delle Entrate. Cosa faccio?
+        </div>
+        <div class="chat-bubble bubble-sofia">
+          Calma — hai <strong>60 giorni</strong> dalla notifica per decidere. Prima di tutto, verifica se l'avviso è stato notificato correttamente tramite PEC o raccomandata. Poi controlla i termini di decadenza: se riguarda anni oltre il quinto precedente, potrebbe essere prescritto.
+        </div>
+        <div class="chat-bubble bubble-user">
+          È del 2019. Posso fare accertamento con adesione?
+        </div>
+        <div class="typing-indicator">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <span class="stat-num">100%</span>
+    <span class="stat-label">Dati ospitati in Italia</span>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <span class="stat-num">GDPR</span>
+    <span class="stat-label">Conforme per default</span>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <span class="stat-num">20+</span>
+    <span class="stat-label">Dialetti compresi</span>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <span class="stat-num">40ms</span>
+    <span class="stat-label">Latenza media in Europa</span>
+  </div>
+</div>
+
+<!-- FUNZIONALITÀ -->
+<section class="section" id="funzionalita">
+  <p class="section-label">Cosa sa fare</p>
+  <div class="section-rule"></div>
+  <h2 class="section-title">
+    Non è una copia.<br>
+    È <em>nata qui.</em>
+  </h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <span class="feature-icon">⚖️</span>
+      <div class="feature-name">Fisco & Burocrazia</div>
+      <p class="feature-desc">Codice tributario, Agenzia delle Entrate, F24, INPS, Superbonus. Sofia conosce il labirinto e ti guida fuori.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">✍️</span>
+      <div class="feature-name">Scrittura professionale</div>
+      <p class="feature-desc">Lettere formali, preventivi, email aziendali. Scrive con il tono giusto per ogni contesto, dal notaio al cliente.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🍝</span>
+      <div class="feature-name">Cultura e territorio</div>
+      <p class="feature-desc">Capisce la differenza tra la cucina bolognese e quella romana. Conosce le fiere locali, le sagre, le tradizioni.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🏢</span>
+      <div class="feature-name">PMI e partite IVA</div>
+      <p class="feature-desc">Business plan, preventivi, contratti. Pensata per il tessuto produttivo italiano: artigiani, professionisti, startup.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🗣️</span>
+      <div class="feature-name">Italiano autentico</div>
+      <p class="feature-desc">Niente "Lei ha ragione" artificioso. Sofia risponde come una persona reale — concisa, chiara, senza giri di parole.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🔒</span>
+      <div class="feature-name">Privacy italiana</div>
+      <p class="feature-desc">I tuoi dati rimangono in server italiani. Nessuna condivisione con big tech americane. GDPR non è una promessa, è l'infrastruttura.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PERCHÉ ITALIANA -->
+<section class="section bg-sabbia" id="perche">
+  <div class="section-split">
+    <div>
+      <p class="section-label">Il perché</p>
+      <div class="section-rule"></div>
+      <blockquote class="big-quote">
+        "L'italiano non è solo una lingua. È un modo di pensare, di fare impresa, di vivere. Nessun modello americano lo capisce davvero."
+      </blockquote>
+      <p style="font-size:0.82rem; opacity:0.55;">— Team Sofia, Bologna 2024</p>
+    </div>
+    <div>
+      <ul class="reason-list">
+        <li>
+          <span class="reason-num">01</span>
+          <div class="reason-text">
+            <strong>Contesto normativo aggiornato</strong>
+            Le leggi italiane cambiano spesso. Sofia è aggiornata su circolari, decreti e normative in tempo reale.
+          </div>
+        </li>
+        <li>
+          <span class="reason-num">02</span>
+          <div class="reason-text">
+            <strong>Modello snello e veloce</strong>
+            Non serve un supercomputer. Ottimizzata per risposte rapide su mobile, anche con connessioni lente.
+          </div>
+        </li>
+        <li>
+          <span class="reason-num">03</span>
+          <div class="reason-text">
+            <strong>Senza abbonamenti americani</strong>
+            Prezzi in euro, fattura italiana, supporto in italiano. Nessuna sorpresa in dollari sulla carta di credito.
+          </div>
+        </li>
+        <li>
+          <span class="reason-num">04</span>
+          <div class="reason-text">
+            <strong>Integrazione con strumenti italiani</strong>
+            TeamSystem, Zucchetti, Fattura PA, SPID. Si connette agli strumenti che già usi.
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- PIANI -->
+<section class="section" id="piani">
+  <p class="section-label">Piani e prezzi</p>
+  <div class="section-rule"></div>
+  <h2 class="section-title">
+    Semplice come<br>
+    dovrebbe <em>essere.</em>
+  </h2>
+  <div class="plans-grid">
+    <div class="plan-card">
+      <div class="plan-name">Libero</div>
+      <div class="plan-price">€0</div>
+      <div class="plan-period">per sempre · no carta di credito</div>
+      <ul class="plan-features">
+        <li>30 messaggi al giorno</li>
+        <li>Italiano standard e formale</li>
+        <li>Risposta a domande fiscali base</li>
+        <li>Accesso web e mobile</li>
+      </ul>
+      <button class="plan-btn">Inizia ora</button>
+    </div>
+    <div class="plan-card featured">
+      <div class="plan-badge">Più scelto</div>
+      <div class="plan-name">Professionale</div>
+      <div class="plan-price">€12</div>
+      <div class="plan-period">al mese · IVA inclusa · fattura italiana</div>
+      <ul class="plan-features">
+        <li>Messaggi illimitati</li>
+        <li>Aggiornamenti normativi real-time</li>
+        <li>Modalità partita IVA / PMI</li>
+        <li>Integrazione calendario e email</li>
+        <li>Memoria conversazionale estesa</li>
+        <li>Supporto via chat in italiano</li>
+      </ul>
+      <button class="plan-btn">Prova 30 giorni gratis</button>
+    </div>
+    <div class="plan-card">
+      <div class="plan-name">Aziende</div>
+      <div class="plan-price">Su misura</div>
+      <div class="plan-period">per team · deployment privato · SLA garantito</div>
+      <ul class="plan-features">
+        <li>Tutto il piano Professional</li>
+        <li>Deployment on-premise o cloud IT</li>
+        <li>Integrazione gestionali (TeamSystem…)</li>
+        <li>Admin dashboard e audit log</li>
+        <li>Account manager dedicato</li>
+        <li>Contratto conforme PA</li>
+      </ul>
+      <button class="plan-btn">Parla con noi</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="footer-brand">So<span>fi</span>a</div>
+      <p class="footer-tagline">L'intelligenza artificiale<br>che capisce l'Italia.<br><br>Fondata a Bologna. Ospitata in Italia.<br>Fatta per gli italiani.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Prodotto</div>
+      <ul class="footer-links">
+        <li><a href="#">Funzionalità</a></li>
+        <li><a href="#">Integrazioni</a></li>
+        <li><a href="#">API</a></li>
+        <li><a href="#">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Azienda</div>
+      <ul class="footer-links">
+        <li><a href="#">Chi siamo</a></li>
+        <li><a href="#">Blog</a></li>
+        <li><a href="#">Lavora con noi</a></li>
+        <li><a href="#">Contatti</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Legale</div>
+      <ul class="footer-links">
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Termini di servizio</a></li>
+        <li><a href="#">Cookie</a></li>
+        <li><a href="#">GDPR</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 Sofia AI Srl — P.IVA 04123456789 — Bologna, Italia</span>
+    <span><span class="flag">🇮🇹</span> Made in Italy</span>
+  </div>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animateCursor() {
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animateCursor);
+  }
+  animateCursor();
+
+  document.querySelectorAll('button, a, .feature-card, .plan-card').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.transform = 'translate(-50%,-50%) scale(1.8)';
+      ring.style.opacity = '0.9';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.transform = 'translate(-50%,-50%) scale(1)';
+      ring.style.opacity = '0.5';
+    });
+  });
+
+  // Scroll reveal
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.feature-card, .plan-card, .reason-list li, .stat-item').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(16px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>

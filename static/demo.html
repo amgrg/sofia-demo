@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sofia — Chat demo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--tc:#C4582A;--cioc:#2C1A0E;--crema:#F5EFE0;--sabbia:#E8D9C0;--verde:#6B8C6E;--ocra:#D4A853;--bg:#fbf6ea;--surface:#fff;--border:#e8d9c0}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--cioc);min-height:100vh;display:flex;flex-direction:column}
+header{background:var(--cioc);color:var(--crema);padding:.9rem 1.5rem;display:flex;align-items:center;gap:1rem;border-bottom:1px solid var(--border)}
+.logo{font-size:1.2rem;font-weight:700;font-style:italic}.logo span{color:var(--tc)}
+.badge{background:var(--tc);font-size:.6rem;padding:2px 8px;border-radius:2px;letter-spacing:.1em;text-transform:uppercase}
+.hlinks{margin-left:auto;display:flex;gap:1rem;font-size:.8rem}
+.hlinks a{color:var(--crema);opacity:.55;text-decoration:none;transition:opacity .2s}.hlinks a:hover{opacity:1}
+.hlinks .quota{opacity:.45}
+
+/* login */
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:80vh}
+.login-box{background:var(--surface);padding:2.2rem;border-radius:10px;border:1px solid var(--border);width:380px;max-width:92vw;box-shadow:0 6px 24px rgba(44,26,14,.06)}
+.login-box h2{font-family:Georgia,serif;font-size:1.15rem;margin-bottom:.4rem;color:var(--cioc)}
+.login-box .sub{font-size:.78rem;opacity:.6;margin-bottom:1.4rem}
+.tabs{display:flex;gap:.4rem;margin-bottom:1rem;font-size:.78rem}
+.tab{flex:1;padding:.5rem;text-align:center;border:1px solid var(--border);background:transparent;cursor:pointer;border-radius:4px;color:var(--cioc);transition:all .15s}
+.tab.active{background:var(--cioc);color:var(--crema);border-color:var(--cioc)}
+.field{margin-bottom:.85rem}
+.field label{display:block;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;opacity:.5;margin-bottom:.3rem}
+.field input{width:100%;padding:.6rem .85rem;background:#fcfaf3;border:1px solid var(--border);color:var(--cioc);border-radius:4px;font-size:.88rem;outline:none}
+.field input:focus{border-color:var(--tc)}
+.btn-full{width:100%;padding:.75rem;background:var(--tc);color:white;border:none;border-radius:4px;cursor:pointer;font-size:.9rem;margin-top:.4rem;transition:background .15s}
+.btn-full:hover{background:#8B2215}
+.err{color:var(--tc);font-size:.78rem;margin-top:.5rem;min-height:.9rem}
+.hint{font-size:.72rem;opacity:.55;margin-top:1rem;text-align:center;line-height:1.5}
+.hint code{background:var(--sabbia);padding:1px 5px;border-radius:3px;font-size:.7rem}
+
+/* chat */
+.chat-wrap{display:flex;flex-direction:column;flex:1;max-width:780px;margin:0 auto;width:100%;padding:1rem}
+.messages{flex:1;overflow-y:auto;padding:1rem 0;display:flex;flex-direction:column;gap:.75rem;min-height:0}
+.bubble{max-width:78%;padding:.7rem 1rem;border-radius:14px;line-height:1.5;font-size:.92rem;white-space:pre-wrap;word-wrap:break-word}
+.bubble.user{background:var(--tc);color:white;align-self:flex-end;border-bottom-right-radius:4px}
+.bubble.sofia{background:var(--surface);color:var(--cioc);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:4px}
+.bubble.sys{background:transparent;color:var(--cioc);opacity:.55;font-size:.78rem;align-self:center;text-align:center;padding:.4rem .8rem;border:1px dashed var(--border);border-radius:8px;max-width:90%}
+.typing{display:flex;gap:4px;padding:.7rem 1rem;align-self:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:14px}
+.typing span{width:7px;height:7px;background:var(--tc);border-radius:50%;opacity:.4;animation:bounce 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
+
+.composer{display:flex;gap:.5rem;padding:.75rem 0;border-top:1px solid var(--border)}
+.composer input{flex:1;padding:.75rem 1rem;border:1px solid var(--border);border-radius:24px;font-size:.92rem;outline:none;background:var(--surface)}
+.composer input:focus{border-color:var(--tc)}
+.composer button{padding:.75rem 1.4rem;background:var(--tc);color:white;border:none;border-radius:24px;font-size:.9rem;cursor:pointer;transition:background .15s}
+.composer button:hover{background:#8B2215}
+.composer button:disabled{opacity:.4;cursor:not-allowed}
+.composer .qbar{font-size:.7rem;opacity:.5;text-align:center;padding-bottom:.3rem}
+.intro{align-self:center;text-align:center;opacity:.55;padding:2rem 1rem;font-size:.85rem;font-family:Georgia,serif;font-style:italic;max-width:500px}
+
+@media(max-width:700px){
+  .hlinks a:not(.quota):not(:last-child){display:none}
+  .bubble{max-width:88%;font-size:.88rem}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginView">
+  <div class="login-box">
+    <h2>Sofia AI</h2>
+    <div class="sub">Accedi per provare la chat demo</div>
+
+    <div class="tabs">
+      <button class="tab active" id="tabLogin" onclick="switchTab('login')">Accedi</button>
+      <button class="tab" id="tabReg" onclick="switchTab('reg')">Registrati</button>
+    </div>
+
+    <div id="formLogin">
+      <div class="field"><label>Email</label><input id="lEmail" type="email" value="marco.bianchi@example.it" autocomplete="username"/></div>
+      <div class="field"><label>Password</label><input id="lPw" type="password" value="demo1234" autocomplete="current-password"/></div>
+      <div class="err" id="lErr"></div>
+      <button class="btn-full" onclick="doLogin()">Entra →</button>
+    </div>
+
+    <div id="formReg" style="display:none">
+      <div class="field"><label>Nome</label><input id="rNome" type="text" placeholder="Mario"/></div>
+      <div class="field"><label>Email</label><input id="rEmail" type="email" placeholder="mario@esempio.it"/></div>
+      <div class="field"><label>Password</label><input id="rPw" type="password" placeholder="min. 4 caratteri"/></div>
+      <div class="err" id="rErr"></div>
+      <button class="btn-full" onclick="doRegister()">Crea account →</button>
+    </div>
+
+    <div class="hint">
+      Demo: usa <code>marco.bianchi@example.it</code> / <code>demo1234</code><br>
+      o admin <code>admin@sofiaai.it</code> / <code>admin1234</code>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div id="chatView" style="display:none;flex:1;flex-direction:column">
+  <header>
+    <div class="logo">So<span>fi</span>a</div>
+    <div class="badge">Chat demo</div>
+    <div class="hlinks">
+      <span class="quota" id="quota">—</span>
+      <a href="/admin">Admin</a>
+      <a href="/api/docs">API</a>
+      <a href="#" onclick="doLogout()">Esci</a>
+    </div>
+  </header>
+
+  <div class="chat-wrap">
+    <div class="messages" id="messages">
+      <div class="intro">Ciao, sono Sofia.<br>Chiedimi di fisco, burocrazia, scrittura professionale, o qualunque cosa abbia a che fare con l'Italia.</div>
+    </div>
+    <div class="composer">
+      <input id="msg" type="text" placeholder="Scrivi un messaggio…" onkeydown="if(event.key==='Enter') sendMsg()"/>
+      <button id="sendBtn" onclick="sendMsg()">Invia</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let token = sessionStorage.getItem('sofia_token') || '';
+let utente = JSON.parse(sessionStorage.getItem('sofia_utente') || 'null');
+
+if (token) showChat();
+
+function switchTab(which) {
+  document.getElementById('tabLogin').classList.toggle('active', which === 'login');
+  document.getElementById('tabReg').classList.toggle('active', which === 'reg');
+  document.getElementById('formLogin').style.display = which === 'login' ? 'block' : 'none';
+  document.getElementById('formReg').style.display = which === 'reg' ? 'block' : 'none';
+}
+
+async function doLogin() {
+  const err = document.getElementById('lErr'); err.textContent = '';
+  try {
+    const r = await fetch('/auth/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        email: document.getElementById('lEmail').value,
+        password: document.getElementById('lPw').value
+      })
+    });
+    const d = await r.json();
+    if (!r.ok) { err.textContent = d.detail || 'Errore'; return; }
+    saveSession(d);
+    showChat();
+  } catch(e) { err.textContent = 'Errore di connessione'; }
+}
+
+async function doRegister() {
+  const err = document.getElementById('rErr'); err.textContent = '';
+  try {
+    const r = await fetch('/auth/register', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        nome: document.getElementById('rNome').value,
+        email: document.getElementById('rEmail').value,
+        password: document.getElementById('rPw').value
+      })
+    });
+    const d = await r.json();
+    if (!r.ok) { err.textContent = d.detail || 'Errore'; return; }
+    saveSession(d);
+    showChat();
+  } catch(e) { err.textContent = 'Errore di connessione'; }
+}
+
+function saveSession(d) {
+  token = d.access_token;
+  utente = d.utente;
+  sessionStorage.setItem('sofia_token', token);
+  sessionStorage.setItem('sofia_utente', JSON.stringify(utente));
+}
+
+function doLogout() {
+  sessionStorage.removeItem('sofia_token');
+  sessionStorage.removeItem('sofia_utente');
+  token = ''; utente = null;
+  document.getElementById('loginView').style.display = 'flex';
+  document.getElementById('chatView').style.display = 'none';
+}
+
+function showChat() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('chatView').style.display = 'flex';
+  if (utente) {
+    document.getElementById('quota').textContent = `${utente.nome} · piano ${utente.piano}`;
+  }
+}
+
+function appendBubble(text, who) {
+  const m = document.getElementById('messages');
+  const intro = m.querySelector('.intro');
+  if (intro) intro.remove();
+  const b = document.createElement('div');
+  b.className = 'bubble ' + who;
+  b.textContent = text;
+  m.appendChild(b);
+  m.scrollTop = m.scrollHeight;
+  return b;
+}
+
+function appendTyping() {
+  const m = document.getElementById('messages');
+  const t = document.createElement('div');
+  t.className = 'typing';
+  t.id = 'typing';
+  t.innerHTML = '<span></span><span></span><span></span>';
+  m.appendChild(t);
+  m.scrollTop = m.scrollHeight;
+  return t;
+}
+
+async function sendMsg() {
+  const input = document.getElementById('msg');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  document.getElementById('sendBtn').disabled = true;
+
+  appendBubble(text, 'user');
+  const typing = appendTyping();
+
+  try {
+    const r = await fetch('/chat', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({messaggio: text})
+    });
+    const d = await r.json();
+    typing.remove();
+    if (!r.ok) {
+      appendBubble('⚠️ ' + (d.detail || 'Errore'), 'sys');
+    } else {
+      appendBubble(d.risposta, 'sofia');
+      if (utente && utente.piano === 'libero') {
+        document.getElementById('quota').textContent = `${utente.nome} · ${d.messaggi_oggi}/${d.limite_giornaliero} oggi`;
+      }
+    }
+  } catch(e) {
+    typing.remove();
+    appendBubble('⚠️ Errore di connessione', 'sys');
+  } finally {
+    document.getElementById('sendBtn').disabled = false;
+    input.focus();
+  }
+}
+</script>
+</body>
+</html>
