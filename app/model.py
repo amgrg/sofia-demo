@@ -7,7 +7,7 @@ from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
-MODEL_NAME: str = os.getenv("SOFIA_MODEL", "EngGPT2-16B-A3B")
+MODEL_NAME: str = os.getenv("SOFIA_MODEL", "gpt2")
 # SOFIA_USE_MOCK=0 per usare il modello reale; di default mock attivo
 USE_MOCK: bool = os.getenv("SOFIA_USE_MOCK", "1") != "0"
 
