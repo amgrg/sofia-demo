@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .config import STATIC_DIR
+from .model import load_model
 from .routers import admin as admin_router
 from .routers import auth as auth_router
 from .routers import chat as chat_router
@@ -41,6 +42,7 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 @app.on_event("startup")
 def on_startup() -> None:
     seed_if_empty()
+    load_model()
 
 
 @app.get("/healthz", include_in_schema=False)
