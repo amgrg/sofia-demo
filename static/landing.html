@@ -79,8 +79,23 @@
     font-weight: 900;
     letter-spacing: -0.02em;
     color: var(--cioccolato);
+    display: flex; align-items: center; gap: 0.6rem;
   }
   .nav-logo span { color: var(--terracotta); font-style: italic; }
+  .beta-badge {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    border: 1.5px solid var(--terracotta);
+    padding: 2px 7px;
+    border-radius: 2px;
+    opacity: 0.8;
+    vertical-align: middle;
+    line-height: 1.6;
+  }
   .nav-links { display: flex; gap: 2rem; list-style: none; }
   .nav-links a {
     text-decoration: none;
@@ -636,7 +651,7 @@
 
 <!-- NAV -->
 <nav>
-  <div class="nav-logo">So<span>fi</span>a</div>
+  <div class="nav-logo">So<span>fi</span>a <span class="beta-badge">Beta</span></div>
   <ul class="nav-links">
     <li><a href="#funzionalita">Funzionalità</a></li>
     <li><a href="#perche">Perché Sofia</a></li>
